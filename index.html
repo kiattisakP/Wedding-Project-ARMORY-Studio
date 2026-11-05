@@ -92,14 +92,15 @@
   catch (e) { console.error(e); $("emptyHome").textContent = "โหลดรูปไม่สำเร็จ: " + (e.message || e); }
 
   // รูปที่ไม่ระบุอัลบั้ม จะรวมเป็นบล็อก "รวมภาพ..." ตามหมวด
-  const keyOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+  const nameOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+  const keyOf = p => p.category + "|" + nameOf(p);       // แยกตามหมวด: ชื่ออัลบั้มซ้ำกันแต่คนละหมวด = คนละบล็อก
 
   function groups() {
     const m = new Map();
     all.forEach(p => { const k = keyOf(p); if (!m.has(k)) m.set(k, []); m.get(k).push(p); });
-    return [...m].map(([name, ps]) => ({
-      name, ps,
-      cats: [...new Set(ps.map(p => p.category))],
+    return [...m].map(([k, ps]) => ({
+      name: nameOf(ps[0]), cat: ps[0].category, ps,
+      cats: [ps[0].category],
       latest: ps.reduce((m, p) => p.created_at > m ? p.created_at : m, "")
     })).sort((a, b) => b.latest.localeCompare(a.latest));
   }
@@ -183,7 +184,7 @@
       const imgs = ps.map((p, i) => `<img draggable="false" ${i === 0 ? "" : 'loading="lazy"'} src="${esc(p.url)}" alt="${esc(g.name)}" style="object-position:${p.focus_x ?? 50}% ${p.focus_y ?? 35}%">`);
       const slides = imgs.join("") + (ps.length > 1 ? imgs[0] : "");   // ต่อสำเนารูปแรกไว้ท้ายเพื่อให้วนต่อเนื่อง
       return `
-      <a class="acard" draggable="false" href="?album=${encodeURIComponent(g.name)}" data-name="${esc(g.name)}" data-n="${ps.length}">
+      <a class="acard" draggable="false" href="?album=${encodeURIComponent(g.name)}&cat=${g.cat}" data-name="${esc(g.name)}" data-cat="${g.cat}" data-n="${ps.length}">
         <div class="cs-track">${slides}</div>
         ${ps.length > 1 ? `<div class="cdots">${ps.map(() => "<i></i>").join("")}</div>` : ""}
         <div class="ainfo">
@@ -197,8 +198,8 @@
     startCards();
   }
 
-  function renderAlbum(name) {
-    shown = all.filter(p => keyOf(p) === name);
+  function renderAlbum(name, cat) {
+    shown = all.filter(p => nameOf(p) === name && (!cat || p.category === cat));      // ไม่ระบุหมวด = ลิงก์เก่า แสดงทุกหมวดที่ชื่อตรง
     $("albumName").textContent = name;
     $("albumCount").textContent = shown.length + " รูป";
     $("albumCat").textContent = [...new Set(shown.map(p => CAT[p.category]))].join(" · ") || "Album";
@@ -213,13 +214,14 @@
 
   // สลับหน้า: หน้าแรก (บล็อกอัลบั้ม) / หน้าอัลบั้ม
   function route() {
-    const album = new URLSearchParams(location.search).get("album");
+    const qs = new URLSearchParams(location.search);
+    const album = qs.get("album"), cat = qs.get("cat");
     const isAlbum = !!album;
     $("heroBox").classList.toggle("hide", isAlbum);
     $("albumHead").classList.toggle("hide", !isAlbum);
     $("homeView").classList.toggle("hide", isAlbum);
     $("albumView").classList.toggle("hide", !isAlbum);
-    if (isAlbum) { stopCards(); renderAlbum(album); window.scrollTo(0, 0); }
+    if (isAlbum) { stopCards(); renderAlbum(album, cat); window.scrollTo(0, 0); }
     else { document.title = C.name + " | พรีเวดดิ้งและงานแต่งงาน"; renderHome(); }
   }
 
@@ -231,7 +233,7 @@
   $("albums").addEventListener("click", e => {
     const a = e.target.closest(".acard"); if (!a) return;
     e.preventDefault();
-    history.pushState({}, "", "?album=" + encodeURIComponent(a.dataset.name));
+    history.pushState({}, "", "?album=" + encodeURIComponent(a.dataset.name) + "&cat=" + a.dataset.cat);
     route();
   });
   $("backLink").addEventListener("click", e => {

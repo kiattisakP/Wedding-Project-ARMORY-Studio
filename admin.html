@@ -104,7 +104,8 @@
 <script>
 const $ = id => document.getElementById(id);
 const say = (t, cls = "") => { $("msg").textContent = t; $("msg").className = "msg " + cls; };
-const keyOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+const nameOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+const keyOf = p => p.category + "|" + nameOf(p);       // แยกตามหมวด: ชื่ออัลบั้มซ้ำกันแต่คนละหมวด = คนละบล็อก
 let all = [];
 
 async function boot() {
@@ -133,7 +134,7 @@ $("testDrive").onclick = async () => {
       return;
     }
     const g = new Map();
-    rows.forEach(p => { const k = keyOf(p); g.set(k, (g.get(k) || 0) + 1); });
+    rows.forEach(p => { const k = (CAT[p.category] || "") + " · " + nameOf(p); g.set(k, (g.get(k) || 0) + 1); });
     m.className = "msg ok"; m.textContent = `เชื่อมต่อสำเร็จ พบ ${g.size} อัลบั้ม รวม ${rows.length} รูป`;
     sum.innerHTML = [...g].map(([k, n]) => `<div style="padding:4px 0;border-bottom:1px solid var(--line)">${esc(k)} <span style="color:var(--muted)">· ${n} รูป</span></div>`).join("");
   } catch (e) {
@@ -185,12 +186,12 @@ async function refresh() {
   if (!all.length) { $("list").innerHTML = '<div class="empty">ยังไม่มีรูป เริ่มอัปโหลดด้านบนได้เลย</div>'; return; }
   const groups = new Map();
   all.forEach(p => { const k = keyOf(p); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); });
-  $("list").innerHTML = [...groups].map(([name, ps]) => `
+  $("list").innerHTML = [...groups].map(([key, ps]) => `
     <div class="agrp">
-      <h4><span class="t">${esc(name)}</span><span style="color:var(--muted);font-weight:300;font-size:.85rem">${ps.length} รูป</span>
-        <button class="btn small" data-act="addto" data-g="${esc(name)}">+ เพิ่มรูปในอัลบั้มนี้</button>
-        <button class="btn small" data-act="rename" data-g="${esc(name)}">เปลี่ยนชื่ออัลบั้ม</button>
-        <button class="btn small" data-act="link" data-g="${esc(name)}">คัดลอกลิงก์ส่งลูกค้า</button></h4>
+      <h4><span class="t">${esc(nameOf(ps[0]))}</span><span class="abadge2">${CAT[ps[0].category] || ""}</span><span style="color:var(--muted);font-weight:300;font-size:.85rem">${ps.length} รูป</span>
+        <button class="btn small" data-act="addto" data-g="${esc(key)}">+ เพิ่มรูปในอัลบั้มนี้</button>
+        <button class="btn small" data-act="rename" data-g="${esc(key)}">เปลี่ยนชื่ออัลบั้ม</button>
+        <button class="btn small" data-act="link" data-g="${esc(key)}">คัดลอกลิงก์ส่งลูกค้า</button></h4>
       <div class="thumbs">${ps.map((p, i) => `
         <div class="th" draggable="true" data-id="${esc(p.id)}">
           <img draggable="false" loading="lazy" src="${esc(p.url)}" alt="">
@@ -240,12 +241,14 @@ $("list").addEventListener("click", async e => {
     return say(`จะเพิ่มรูปเข้าอัลบั้ม "${g}" เลือกรูปด้านล่างได้เลย`);
   }
   if (act === "rename") {
-    const name = prompt("ชื่ออัลบั้มใหม่", g.startsWith("รวมภาพ") ? "" : g);
-    if (!name || !name.trim() || name.trim() === g) return;
+    const cur = all.find(q => keyOf(q) === g);
+    const name = prompt("ชื่ออัลบั้มใหม่", cur.album || "");
+    if (!name || !name.trim() || name.trim() === (cur.album || "")) return;
     return run(() => Promise.all(all.filter(q => keyOf(q) === g).map(q => Store.update(q.id, { album: name.trim() }))));
   }
   if (act === "link") {
-    const url = new URL("./", location.href); url.searchParams.set("album", g);
+    const c0 = all.find(q => keyOf(q) === g);
+    const url = new URL("./", location.href); url.searchParams.set("album", nameOf(c0)); url.searchParams.set("cat", c0.category);
     try { await navigator.clipboard.writeText(url.href); b.textContent = "คัดลอกแล้ว ✓"; }
     catch { prompt("คัดลอกลิงก์นี้", url.href); }
     setTimeout(() => b.textContent = "คัดลอกลิงก์ส่งลูกค้า", 1600);
