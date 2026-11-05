@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>จัดการผลงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@300;400;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="./">← กลับหน้าเว็บ</a>
+  <a class="link" href="#" id="logout">ออกจากระบบ</a>
+</div></header>
+
+<main class="wrap admin">
+
+  <!-- เข้าสู่ระบบ -->
+  <div id="loginView" class="panel hide" style="max-width:420px;margin:60px auto">
+    <h3>เข้าสู่ระบบผู้ดูแล</h3>
+    <label>อีเมล</label><input type="email" id="em" autocomplete="username">
+    <label style="margin-top:12px">รหัสผ่าน</label><input type="password" id="pw" autocomplete="current-password">
+    <button class="btn solid" id="loginBtn">เข้าสู่ระบบ</button>
+    <div class="msg err" id="loginMsg"></div>
+  </div>
+
+  <!-- โหมด Google Drive -->
+  <div id="driveView" class="hide">
+    <div class="panel">
+      <h3>จัดการรูปผ่าน Google Drive</h3>
+      <p style="color:var(--muted);font-size:.92rem;margin-bottom:12px">เว็บนี้ดึงรูปจากโฟลเดอร์ Google Drive ของคุณโดยตรง ไม่ต้องอัปโหลดผ่านหน้านี้</p>
+      <ul class="dlist">
+        <li><b>เพิ่มงานใหม่:</b> สร้างโฟลเดอร์ใหม่ในโฟลเดอร์ <b>พรีเวดดิ้ง</b> หรือ <b>งานแต่งงาน</b> ตั้งชื่อเป็นชื่ออัลบั้ม เช่น <b>U&amp;F</b> แล้วใส่รูปลงไป</li>
+        <li><b>จัดลำดับรูป:</b> เรียงตามชื่อไฟล์ เช่น <b>01.jpg, 02.jpg, 03.jpg</b> รูปแรกคือภาพปกของอัลบั้ม</li>
+        <li><b>ลบรูป / แก้ชื่ออัลบั้ม:</b> ทำใน Drive ได้เลย</li>
+        <li>เว็บจำผลไว้ประมาณ 5 นาที ถ้าอยากเห็นทันที เปิดหน้าเว็บโดยต่อท้ายลิงก์ด้วย <b>?refresh=1</b></li>
+      </ul>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px">
+        <a class="btn solid" id="openDrive" target="_blank" rel="noopener" style="margin:0">เปิดโฟลเดอร์ใน Google Drive</a>
+        <button class="btn" id="testDrive" style="margin:0;color:var(--ink)">ตรวจสอบการเชื่อมต่อ</button>
+      </div>
+      <div class="msg" id="driveMsg"></div>
+      <div id="driveSum" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- แอดมิน -->
+  <div id="adminView" class="hide">
+    <div class="banner hide" id="demoBanner">โหมดทดลอง: รูปจะถูกเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ขึ้นเว็บจริง ดูวิธีเชื่อมต่อฐานข้อมูลในไฟล์ README.md</div>
+
+    <div class="panel" id="uploadPanel">
+      <h3>เพิ่มรูปภาพ</h3>
+      <div class="form">
+        <div><label>หมวดหมู่</label>
+          <select id="cat"><option value="prewedding">พรีเวดดิ้ง</option><option value="wedding">งานแต่งงาน</option></select></div>
+        <div><label>ชื่ออัลบั้ม / ชื่อคู่บ่าวสาว</label>
+          <input type="text" id="album" list="albums" placeholder="เช่น พรีเวด U&amp;F"><datalist id="albums"></datalist></div>
+        <div><label>คำบรรยายรูป (ไม่ใส่ก็ได้)</label>
+          <input type="text" id="ttl" placeholder="เช่น ริมทะเลยามเย็น"></div>
+      </div>
+      <div class="drop" id="drop">คลิกเพื่อเลือกรูป หรือ ลากรูปมาวางที่นี่ (เลือกได้หลายรูปพร้อมกัน)</div>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <div class="prog" id="prog"><i></i></div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="panel">
+      <h3>รูปทั้งหมด <span id="count" style="color:var(--muted);font-size:.9rem"></span></h3>
+      <div class="banner" style="background:#f3f7f1;border-color:#cfe0c8;color:#3c5a35">
+        จัดลำดับ: <b>ลากรูปไปวาง</b> ในตำแหน่งที่ต้องการ หรือกด <b>◀ ▶</b> (ใช้บนมือถือได้) ·
+        <b>★</b> ตั้งเป็นภาพปกของอัลบั้ม (รูปแรกคือภาพปก) · <b>✎</b> แก้ไขรูป · <b>×</b> ลบรูป
+      </div>
+      <div id="list"></div>
+    </div>
+  </div>
+</main>
+
+<!-- หน้าต่างแก้ไขรูป -->
+<dialog id="dlg">
+  <h3 style="font-family:var(--serif);font-weight:400;margin-bottom:14px">แก้ไขรูป</h3>
+  <label>จุดโฟกัส: คลิกที่ใบหน้าหรือจุดสำคัญของภาพ เพื่อไม่ให้ถูกตัดตอนแสดงบนหน้าเว็บ</label>
+  <div class="fwrap" id="fwrap"><img id="eImg" alt=""><i class="fdot" id="fdot"></i></div>
+  <div class="fprevrow">
+    <div class="fprev" id="fprev"></div>
+    <div class="fnote">ตัวอย่างตอนถูกครอบเป็นกรอบกว้าง<br><button type="button" class="btn small" id="fReset" style="margin-top:6px">รีเซ็ตจุดโฟกัส</button></div>
+  </div>
+  <label>หมวดหมู่</label>
+  <select id="eCat"><option value="prewedding">พรีเวดดิ้ง</option><option value="wedding">งานแต่งงาน</option></select>
+  <label style="margin-top:12px">ชื่ออัลบั้ม (ย้ายไปอัลบั้มอื่นได้ โดยพิมพ์ชื่ออื่น)</label>
+  <input type="text" id="eAlbum" list="albums">
+  <label style="margin-top:12px">คำบรรยายรูป</label>
+  <input type="text" id="eTitle">
+  <div class="msg err" id="eMsg"></div>
+  <div class="row2">
+    <button class="btn small" id="eCancel">ยกเลิก</button>
+    <button class="btn small solid" id="eSave">บันทึก</button>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const say = (t, cls = "") => { $("msg").textContent = t; $("msg").className = "msg " + cls; };
+const keyOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+let all = [];
+
+async function boot() {
+  if (DRIVE) return bootDrive();
+  if (DEMO) $("demoBanner").classList.remove("hide");
+  const ok = await Store.hasSession();
+  $("loginView").classList.toggle("hide", ok);
+  $("adminView").classList.toggle("hide", !ok);
+  $("logout").classList.toggle("hide", DEMO || !ok);
+  if (ok) refresh();
+}
+
+function bootDrive() {
+  ["loginView", "adminView", "logout"].forEach(id => $(id).classList.add("hide"));
+  $("driveView").classList.remove("hide");
+  $("openDrive").href = "https://drive.google.com/drive/folders/" + CFG.driveFolderId;
+}
+$("testDrive").onclick = async () => {
+  const m = $("driveMsg"), sum = $("driveSum");
+  m.className = "msg"; m.textContent = "กำลังตรวจสอบ..."; sum.innerHTML = "";
+  try {
+    const rows = await Drive.load(true);
+    if (!rows.length) {
+      m.className = "msg err";
+      m.textContent = "เชื่อมต่อได้ แต่ยังไม่พบรูป ตรวจสอบว่าโฟลเดอร์ถูกแชร์แบบ 'ทุกคนที่มีลิงก์' และมีโฟลเดอร์ พรีเวดดิ้ง / งานแต่งงาน ที่มีรูปอยู่ข้างใน";
+      return;
+    }
+    const g = new Map();
+    rows.forEach(p => { const k = keyOf(p); g.set(k, (g.get(k) || 0) + 1); });
+    m.className = "msg ok"; m.textContent = `เชื่อมต่อสำเร็จ พบ ${g.size} อัลบั้ม รวม ${rows.length} รูป`;
+    sum.innerHTML = [...g].map(([k, n]) => `<div style="padding:4px 0;border-bottom:1px solid var(--line)">${esc(k)} <span style="color:var(--muted)">· ${n} รูป</span></div>`).join("");
+  } catch (e) {
+    m.className = "msg err"; m.textContent = "เชื่อมต่อไม่สำเร็จ: " + (e.message || e);
+  }
+};
+
+$("loginBtn").onclick = async () => {
+  try { await Store.login($("em").value.trim(), $("pw").value); $("loginMsg").textContent = ""; boot(); }
+  catch (e) { $("loginMsg").textContent = "เข้าสู่ระบบไม่สำเร็จ: " + (e.message || e); }
+};
+$("pw").addEventListener("keydown", e => e.key === "Enter" && $("loginBtn").click());
+$("logout").onclick = async e => { e.preventDefault(); await Store.logout(); boot(); };
+
+// ---------- อัปโหลด ----------
+const drop = $("drop"), fileIn = $("file");
+drop.onclick = () => fileIn.click();
+fileIn.onchange = () => upload([...fileIn.files]);
+["dragover", "dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => upload([...e.dataTransfer.files]));
+
+async function upload(files) {
+  files = files.filter(f => f.type.startsWith("image/"));
+  if (!files.length) return say("กรุณาเลือกไฟล์รูปภาพ", "err");
+  const meta = { category: $("cat").value, album: $("album").value.trim(), title: $("ttl").value.trim() };
+  const bar = $("prog"), fill = bar.firstElementChild;
+  bar.style.display = "block"; fill.style.width = "0";
+  let done = 0, fail = 0;
+  for (const f of files) {
+    try { await Store.add(await compress(f), meta); }
+    catch (e) { fail++; console.error(e); say("อัปโหลดบางรูปไม่สำเร็จ: " + (e.message || e), "err"); }
+    fill.style.width = (++done / files.length * 100) + "%";
+    say(`กำลังอัปโหลด ${done}/${files.length}`);
+  }
+  fileIn.value = "";
+  if (!fail) say(`อัปโหลดสำเร็จ ${files.length} รูป (เรียงต่อท้ายอัลบั้ม จัดลำดับได้ด้านล่าง)`, "ok");
+  setTimeout(() => bar.style.display = "none", 800);
+  refresh();
+}
+
+// ---------- รายการรูป จัดกลุ่มตามอัลบั้ม ----------
+const groupOf = p => all.filter(q => keyOf(q) === keyOf(p));
+
+async function refresh() {
+  all = await Store.list();
+  $("count").textContent = `(${all.length} รูป)`;
+  $("albums").innerHTML = [...new Set(all.map(p => p.album).filter(Boolean))].map(a => `<option value="${esc(a)}">`).join("");
+  if (!all.length) { $("list").innerHTML = '<div class="empty">ยังไม่มีรูป เริ่มอัปโหลดด้านบนได้เลย</div>'; return; }
+  const groups = new Map();
+  all.forEach(p => { const k = keyOf(p); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(p); });
+  $("list").innerHTML = [...groups].map(([name, ps]) => `
+    <div class="agrp">
+      <h4><span class="t">${esc(name)}</span><span style="color:var(--muted);font-weight:300;font-size:.85rem">${ps.length} รูป</span>
+        <button class="btn small" data-act="addto" data-g="${esc(name)}">+ เพิ่มรูปในอัลบั้มนี้</button>
+        <button class="btn small" data-act="rename" data-g="${esc(name)}">เปลี่ยนชื่ออัลบั้ม</button>
+        <button class="btn small" data-act="link" data-g="${esc(name)}">คัดลอกลิงก์ส่งลูกค้า</button></h4>
+      <div class="thumbs">${ps.map((p, i) => `
+        <div class="th" draggable="true" data-id="${esc(p.id)}">
+          <img draggable="false" loading="lazy" src="${esc(p.url)}" alt="">
+          <b class="no ${i === 0 ? "cv" : ""}">${i === 0 ? "ปก" : i + 1}</b>
+          <button class="x" title="ลบรูป" data-act="del" data-id="${esc(p.id)}">×</button>
+          <div class="bar">
+            <button title="เลื่อนไปก่อน" data-act="left" data-id="${esc(p.id)}">◀</button>
+            <button title="ตั้งเป็นภาพปก" data-act="cover" data-id="${esc(p.id)}">★</button>
+            <button title="แก้ไข" data-act="edit" data-id="${esc(p.id)}">✎</button>
+            <button title="เลื่อนไปหลัง" data-act="right" data-id="${esc(p.id)}">▶</button>
+          </div>
+        </div>`).join("")}</div>
+    </div>`).join("");
+}
+
+async function run(fn) {
+  try { await fn(); await refresh(); }
+  catch (e) { say("ทำรายการไม่สำเร็จ: " + (e.message || e), "err"); window.scrollTo(0, 0); }
+}
+async function moveTo(p, newIndex) {
+  const ids = groupOf(p).map(q => q.id);
+  const from = ids.indexOf(p.id);
+  newIndex = Math.max(0, Math.min(ids.length - 1, newIndex));
+  if (from === newIndex) return;
+  ids.splice(newIndex, 0, ids.splice(from, 1)[0]);
+  await Store.reorder(ids);
+}
+
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const act = b.dataset.act, p = all.find(q => q.id === b.dataset.id), g = b.dataset.g;
+  if (act === "del") {
+    if (!confirm("ลบรูปนี้ถาวร?")) return;
+    return run(() => Store.remove(p));
+  }
+  if (act === "left" || act === "right") {
+    const i = groupOf(p).findIndex(q => q.id === p.id);
+    return run(() => moveTo(p, i + (act === "left" ? -1 : 1)));
+  }
+  if (act === "cover") return run(() => moveTo(p, 0));
+  if (act === "edit") return openEdit(p);
+  if (act === "addto") {
+    const ps = all.filter(q => keyOf(q) === g);
+    $("album").value = ps[0].album || "";
+    $("cat").value = ps[0].category;
+    $("uploadPanel").scrollIntoView({ behavior: "smooth" });
+    return say(`จะเพิ่มรูปเข้าอัลบั้ม "${g}" เลือกรูปด้านล่างได้เลย`);
+  }
+  if (act === "rename") {
+    const name = prompt("ชื่ออัลบั้มใหม่", g.startsWith("รวมภาพ") ? "" : g);
+    if (!name || !name.trim() || name.trim() === g) return;
+    return run(() => Promise.all(all.filter(q => keyOf(q) === g).map(q => Store.update(q.id, { album: name.trim() }))));
+  }
+  if (act === "link") {
+    const url = new URL("./", location.href); url.searchParams.set("album", g);
+    try { await navigator.clipboard.writeText(url.href); b.textContent = "คัดลอกแล้ว ✓"; }
+    catch { prompt("คัดลอกลิงก์นี้", url.href); }
+    setTimeout(() => b.textContent = "คัดลอกลิงก์ส่งลูกค้า", 1600);
+  }
+});
+
+// ---------- ลากวางเพื่อสลับลำดับ ----------
+let dragId = null;
+const thOf = e => e.target.closest(".th");
+$("list").addEventListener("dragstart", e => {
+  const t = thOf(e); if (!t) return;
+  dragId = t.dataset.id; t.classList.add("drag");
+  e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId);
+});
+$("list").addEventListener("dragend", () => {
+  dragId = null;
+  document.querySelectorAll(".th.drag,.th.over").forEach(x => x.classList.remove("drag", "over"));
+});
+$("list").addEventListener("dragover", e => {
+  const t = thOf(e); if (!t || !dragId) return;
+  e.preventDefault();
+  document.querySelectorAll(".th.over").forEach(x => x.classList.remove("over"));
+  if (t.dataset.id !== dragId) t.classList.add("over");
+});
+$("list").addEventListener("drop", e => {
+  const t = thOf(e); if (!t || !dragId) return;
+  e.preventDefault();
+  const from = all.find(q => q.id === dragId), to = all.find(q => q.id === t.dataset.id);
+  if (!from || !to || from.id === to.id || keyOf(from) !== keyOf(to)) return;   // ลากได้เฉพาะในอัลบั้มเดียวกัน
+  const idx = groupOf(to).findIndex(q => q.id === to.id);
+  run(() => moveTo(from, idx));
+});
+
+// ---------- แก้ไขรูป ----------
+// จุดโฟกัสของภาพ (เปอร์เซ็นต์ จากมุมซ้ายบน) ค่าเริ่มต้นเน้นส่วนบนของภาพ
+let focus = { x: 50, y: 35 }, focusMode = "keep";   // keep = ไม่เปลี่ยน, set = ตั้งใหม่, clear = ล้างค่า
+function drawFocus() {
+  $("fdot").style.left = focus.x + "%"; $("fdot").style.top = focus.y + "%";
+  $("fprev").style.backgroundImage = `url("${editing.url}")`;
+  $("fprev").style.backgroundPosition = `${focus.x}% ${focus.y}%`;
+}
+$("fwrap").addEventListener("click", e => {
+  const r = $("eImg").getBoundingClientRect();
+  const c = v => Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
+  focus = { x: c((e.clientX - r.left) / r.width * 100), y: c((e.clientY - r.top) / r.height * 100) };
+  focusMode = "set"; drawFocus();
+});
+$("fReset").onclick = () => { focus = { x: 50, y: 35 }; focusMode = "clear"; drawFocus(); };
+let editing = null;
+function openEdit(p) {
+  editing = p;
+  $("eImg").src = p.url;
+  focus = p.focus_x != null ? { x: p.focus_x, y: p.focus_y } : { x: 50, y: 35 };
+  focusMode = "keep"; drawFocus();
+  $("eCat").value = p.category;
+  $("eAlbum").value = p.album || "";
+  $("eTitle").value = p.title || "";
+  $("eMsg").textContent = "";
+  $("dlg").showModal();
+}
+$("eCancel").onclick = () => $("dlg").close();
+$("eSave").onclick = async () => {
+  try {
+    const album = $("eAlbum").value.trim();
+    const changedGroup = album !== (editing.album || "") || $("eCat").value !== editing.category;
+    const fields = { category: $("eCat").value, album, title: $("eTitle").value.trim() };
+    if (focusMode === "set") { fields.focus_x = focus.x; fields.focus_y = focus.y; }
+    if (focusMode === "clear") { fields.focus_x = null; fields.focus_y = null; }
+    // ย้ายไปอัลบั้มอื่น: ให้ไปต่อท้ายอัลบั้มใหม่
+    if (changedGroup) fields.sort_order = Date.now();
+    await Store.update(editing.id, fields);
+    $("dlg").close(); refresh();
+  } catch (e) { $("eMsg").textContent = "บันทึกไม่สำเร็จ: " + (e.message || e); }
+};
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio | พรีเวดดิ้งและงานแต่งงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@300;400;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" id="brand" href="./">Your Studio</a>
+  <nav><a class="link" href="./#gallery">ผลงาน</a><a class="link" href="#contact">ติดต่อ</a></nav>
+</div></header>
+
+<div id="heroBox">
+<section class="hero" id="hero"><div class="hbg" id="hbg"></div><div>
+  <small>Pre-wedding &amp; Wedding Photography</small>
+  <h1 id="heroTitle">Your Studio</h1>
+  <p id="tagline"></p>
+  <a class="btn" href="#gallery">ดูผลงาน</a>
+</div></section>
+</div>
+
+<div id="albumHead" class="album-head hide wrap">
+  <small id="albumCat">Album</small>
+  <h1 id="albumName"></h1>
+  <p id="albumCount" style="color:var(--muted);font-size:.9rem"></p>
+  <a href="./" id="backLink">← ดูผลงานทั้งหมด</a>
+</div>
+
+<section id="gallery"><div class="wrap">
+  <div id="homeView">
+    <div class="title"><h2>ผลงานของเรา</h2><p>คัดสรรจากงานจริงของคู่รักที่ไว้วางใจเรา</p></div>
+    <div class="filters" id="filters">
+      <button class="chip on" data-f="all">ทั้งหมด</button>
+      <button class="chip" data-f="prewedding">พรีเวดดิ้ง</button>
+      <button class="chip" data-f="wedding">งานแต่งงาน</button>
+    </div>
+    <div class="albums" id="albums"></div>
+    <div class="empty hide" id="emptyHome">ยังไม่มีผลงานในหมวดนี้</div>
+  </div>
+
+  <div id="albumView" class="hide">
+    <div class="grid" id="grid"></div>
+    <div class="empty hide" id="emptyAlbum">ไม่พบอัลบั้มนี้</div>
+  </div>
+</div></section>
+
+<section class="contact" id="contact"><div class="wrap">
+  <h2>สนใจจองคิวถ่ายภาพ?</h2>
+  <p style="opacity:.75">ทักมาคุยรายละเอียดและแพ็กเกจได้เลย</p>
+  <div class="row" id="contactRow"></div>
+</div></section>
+<footer id="foot"></footer>
+
+<div class="lb" id="lb">
+  <button class="x" aria-label="ปิด">×</button>
+  <button class="p" aria-label="ก่อนหน้า">‹</button>
+  <img id="lbImg" alt="">
+  <button class="n" aria-label="ถัดไป">›</button>
+  <div class="info" id="lbInfo"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+(async () => {
+  const C = window.SITE;
+  const $ = id => document.getElementById(id);
+  document.title = C.name + " | พรีเวดดิ้งและงานแต่งงาน";
+  $("brand").textContent = C.name;
+  $("heroTitle").textContent = C.name;
+  $("tagline").textContent = C.tagline;
+  $("foot").textContent = "© " + new Date().getFullYear() + " " + C.name;
+  if (C.heroImage) $("hero").classList.add("has-img", "fixed");          // กำหนดรูปส่วนบนสุดเอง
+  const rows = [];
+  if (C.contact.line) rows.push(`<a class="btn" href="${esc(C.contact.line)}" target="_blank" rel="noopener">LINE</a>`);
+  if (C.contact.phone) rows.push(`<a class="btn" href="tel:${esc(C.contact.phone)}">โทร ${esc(C.contact.phone)}</a>`);
+  if (C.contact.email) rows.push(`<a class="btn" href="mailto:${esc(C.contact.email)}">${esc(C.contact.email)}</a>`);
+  if (C.contact.instagram) rows.push(`<a class="btn" href="${esc(C.contact.instagram)}" target="_blank" rel="noopener">Instagram</a>`);
+  if (C.contact.facebook) rows.push(`<a class="btn" href="${esc(C.contact.facebook)}" target="_blank" rel="noopener">Facebook</a>`);
+  $("contactRow").innerHTML = rows.join("") || '<span style="opacity:.6">ตั้งค่าช่องทางติดต่อในไฟล์ config.js</span>';
+
+  let all = [];
+  try { all = await Store.list(); }
+  catch (e) { console.error(e); $("emptyHome").textContent = "โหลดรูปไม่สำเร็จ: " + (e.message || e); }
+
+  // รูปที่ไม่ระบุอัลบั้ม จะรวมเป็นบล็อก "รวมภาพ..." ตามหมวด
+  const keyOf = p => p.album || ("รวมภาพ" + (CAT[p.category] || ""));
+
+  function groups() {
+    const m = new Map();
+    all.forEach(p => { const k = keyOf(p); if (!m.has(k)) m.set(k, []); m.get(k).push(p); });
+    return [...m].map(([name, ps]) => ({
+      name, ps,
+      cats: [...new Set(ps.map(p => p.category))],
+      latest: ps.reduce((m, p) => p.created_at > m ? p.created_at : m, "")
+    })).sort((a, b) => b.latest.localeCompare(a.latest));
+  }
+
+  // ---------- พื้นหลังส่วนบนสุด: ภาพผลงานจริงค่อยๆ สลับกัน ----------
+  const HERO_INTERVAL = 6000;            // ms ต่อ 1 ภาพ (แก้ตัวเลขนี้เพื่อปรับความเร็ว)
+  async function startHero() {
+    if (C.heroImage) {                                                     // ใช้รูปที่กำหนดใน config.js รูปเดียว ไม่สลับ
+      $("hbg").innerHTML = `<i class="on" style="background-image:url('${esc(C.heroImage)}');background-position:${esc(C.heroFocus || "50% 40%")}"></i>`;
+      return;
+    }
+    const cand = new Map();                                    // url -> จุดโฟกัสของภาพ
+    const add = (u, p) => { if (u && !cand.has(u)) cand.set(u, { fx: p?.focus_x ?? 50, fy: p?.focus_y ?? 35 }); };
+    add(C.heroImage);
+    const gs = groups();
+    gs.forEach(g => { if (g.ps[0]) add(g.ps[0].url, g.ps[0]); });                 // ภาพปกของแต่ละอัลบั้มก่อน
+    gs.forEach(g => g.ps.slice(1, 4).forEach(p => add(p.url, p)));                 // แล้วตามด้วยภาพอื่นให้หลากหลาย
+    const info = await Promise.all([...cand].slice(0, 30).map(([u, f]) => new Promise(r => {
+      const im = new Image();
+      im.onload = () => r({ u, ...f, ratio: im.naturalWidth / im.naturalHeight });
+      im.onerror = () => r(null);
+      im.src = u;
+    })));
+    const ok = info.filter(Boolean);
+    // ใช้เฉพาะภาพแนวนอน (กว้างกว่าสูงมาก) เพื่อให้พอดีกรอบโดยแทบไม่ถูกตัด
+    let list = ok.filter(x => x.ratio >= 1.3);
+    if (!list.length) list = ok.filter(x => x.ratio >= 1);
+    list = list.slice(0, 8);
+    if (!list.length) return;
+    const bg = $("hbg");
+    // background-position = จุดโฟกัสที่ตั้งไว้ในหน้าแอดมิน (ค่าเริ่มต้นเน้นส่วนบนของภาพ เพื่อไม่ให้หัวขาด)
+    bg.innerHTML = list.map(x => `<i style="background-image:url('${esc(x.u)}');background-position:${x.fx}% ${x.fy}%"></i>`).join("");
+    $("hero").classList.add("has-img");
+    const els = bg.children; let i = 0;
+    els[0].classList.add("on");
+    if (els.length < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    setInterval(() => {
+      if (document.hidden) return;
+      els[i].classList.remove("on"); i = (i + 1) % els.length; els[i].classList.add("on");
+    }, HERO_INTERVAL);
+  }
+
+  let filter = "all", shown = [];
+
+  // ---------- แต่ละบล็อกเลื่อนรูปของอัลบั้มตัวเอง (แยกกัน ไม่ซิงก์กัน) ----------
+  const CARD_INTERVAL = 7000;        // ms ระยะเวลาต่อ 1 รูป (แก้ตัวเลขนี้เพื่อปรับความเร็ว)
+  const CARD_MAX_PHOTOS = 10;        // จำนวนรูปสูงสุดที่หมุนในแต่ละบล็อก
+  let cardTimers = [];
+  function stopCards() { cardTimers.forEach(clearInterval); cardTimers = []; }
+
+  function startCards() {
+    stopCards();
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelectorAll("#albums .acard").forEach((card, ci) => {
+      const n = +card.dataset.n;
+      if (n < 2) return;
+      const track = card.querySelector(".cs-track");
+      const dots = card.querySelectorAll(".cdots i");
+      let pos = 0;
+      const go = animate => {
+        track.style.transition = animate ? "transform .9s cubic-bezier(.65,0,.35,1)" : "none";
+        track.style.transform = `translateX(${-pos * 100}%)`;
+        dots.forEach((d, i) => d.classList.toggle("on", i === pos % n));
+      };
+      go(false);
+      if (reduce) return;
+      // เมื่อเลื่อนถึงสำเนาภาพแรกท้ายแถว ให้กระโดดกลับต้นแถวแบบไม่เห็นรอยต่อ
+      track.addEventListener("transitionend", e => { if (e.target === track && pos >= n) { pos = 0; go(false); } });
+      const tick = () => { if (!document.hidden && pos < n) { pos++; go(true); } };
+      // เริ่มและจังหวะต่างกันในแต่ละบล็อก จะได้ไม่เลื่อนพร้อมกัน
+      const every = CARD_INTERVAL + (ci % 3) * 500;          // แต่ละบล็อกจังหวะต่างกันเล็กน้อย
+      const t = setTimeout(() => { tick(); cardTimers.push(setInterval(tick, every)); }, 5000 + ci * 1200);
+      cardTimers.push(t);
+    });
+  }
+
+  function renderHome() {
+    const gs = groups().filter(g => filter === "all" || g.cats.includes(filter));
+    $("albums").innerHTML = gs.map(g => {
+      const ps = g.ps.slice(0, CARD_MAX_PHOTOS);            // รูปแรกตามลำดับที่จัดไว้ = ภาพปก
+      const imgs = ps.map((p, i) => `<img draggable="false" ${i === 0 ? "" : 'loading="lazy"'} src="${esc(p.url)}" alt="${esc(g.name)}" style="object-position:${p.focus_x ?? 50}% ${p.focus_y ?? 35}%">`);
+      const slides = imgs.join("") + (ps.length > 1 ? imgs[0] : "");   // ต่อสำเนารูปแรกไว้ท้ายเพื่อให้วนต่อเนื่อง
+      return `
+      <a class="acard" draggable="false" href="?album=${encodeURIComponent(g.name)}" data-name="${esc(g.name)}" data-n="${ps.length}">
+        <div class="cs-track">${slides}</div>
+        ${ps.length > 1 ? `<div class="cdots">${ps.map(() => "<i></i>").join("")}</div>` : ""}
+        <div class="ainfo">
+          <span class="abadge">${g.cats.map(c => CAT[c]).join(" · ")}</span>
+          <h3>${esc(g.name)}</h3>
+          <span class="acount">${g.ps.length} รูป</span>
+        </div>
+      </a>`;
+    }).join("");
+    $("emptyHome").classList.toggle("hide", gs.length > 0);
+    startCards();
+  }
+
+  function renderAlbum(name) {
+    shown = all.filter(p => keyOf(p) === name);
+    $("albumName").textContent = name;
+    $("albumCount").textContent = shown.length + " รูป";
+    $("albumCat").textContent = [...new Set(shown.map(p => CAT[p.category]))].join(" · ") || "Album";
+    document.title = name + " | " + C.name;
+    $("grid").innerHTML = shown.map((p, i) => `
+      <figure class="item" data-i="${i}">
+        <img loading="lazy" src="${esc(p.url)}" alt="${esc(p.title || name)}">
+        ${p.title ? `<figcaption class="cap">${esc(p.title)}</figcaption>` : ""}
+      </figure>`).join("");
+    $("emptyAlbum").classList.toggle("hide", shown.length > 0);
+  }
+
+  // สลับหน้า: หน้าแรก (บล็อกอัลบั้ม) / หน้าอัลบั้ม
+  function route() {
+    const album = new URLSearchParams(location.search).get("album");
+    const isAlbum = !!album;
+    $("heroBox").classList.toggle("hide", isAlbum);
+    $("albumHead").classList.toggle("hide", !isAlbum);
+    $("homeView").classList.toggle("hide", isAlbum);
+    $("albumView").classList.toggle("hide", !isAlbum);
+    if (isAlbum) { stopCards(); renderAlbum(album); window.scrollTo(0, 0); }
+    else { document.title = C.name + " | พรีเวดดิ้งและงานแต่งงาน"; renderHome(); }
+  }
+
+  $("filters").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+    filter = b.dataset.f; renderHome();
+  });
+  $("albums").addEventListener("click", e => {
+    const a = e.target.closest(".acard"); if (!a) return;
+    e.preventDefault();
+    history.pushState({}, "", "?album=" + encodeURIComponent(a.dataset.name));
+    route();
+  });
+  $("backLink").addEventListener("click", e => {
+    e.preventDefault();
+    history.pushState({}, "", location.pathname);
+    route();
+  });
+  addEventListener("popstate", route);
+  route();
+  startHero();
+
+  // lightbox
+  const lb = $("lb"), img = $("lbImg"), info = $("lbInfo");
+  let cur = 0;
+  function show(i) {
+    cur = (i + shown.length) % shown.length;
+    const p = shown[cur];
+    img.src = p.url;
+    info.textContent = [p.title, `${cur + 1}/${shown.length}`].filter(Boolean).join("   ·   ");
+  }
+  $("grid").addEventListener("click", e => {
+    const f = e.target.closest(".item"); if (!f) return;
+    show(+f.dataset.i); lb.classList.add("open");
+  });
+  lb.querySelector(".x").onclick = () => lb.classList.remove("open");
+  lb.querySelector(".p").onclick = () => show(cur - 1);
+  lb.querySelector(".n").onclick = () => show(cur + 1);
+  lb.addEventListener("click", e => { if (e.target === lb) lb.classList.remove("open"); });
+  addEventListener("keydown", e => {
+    if (!lb.classList.contains("open")) return;
+    if (e.key === "Escape") lb.classList.remove("open");
+    if (e.key === "ArrowLeft") show(cur - 1);
+    if (e.key === "ArrowRight") show(cur + 1);
+  });
+})();
+</script>
+</body>
+</html>
