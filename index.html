@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Portfolio | พรีเวดดิ้งและงานแต่งงาน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@300;400;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500&family=Noto+Serif+Thai:wght@300;400;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -49,8 +49,9 @@
 </div></section>
 
 <section class="contact" id="contact"><div class="wrap">
-  <h2>สนใจจองคิวถ่ายภาพ?</h2>
-  <p style="opacity:.75">ทักมาคุยรายละเอียดและแพ็กเกจได้เลย</p>
+  <small class="ckicker">Contact</small>
+  <h2>Book Your Session</h2>
+  <p>Tell us your story, and we will turn it into images you will treasure for a lifetime.</p>
   <div class="row" id="contactRow"></div>
 </div></section>
 <footer id="foot"></footer>
@@ -76,13 +77,15 @@
   $("tagline").textContent = C.tagline;
   $("foot").textContent = "© " + new Date().getFullYear() + " " + C.name;
   if (C.heroImage) $("hero").classList.add("has-img", "fixed");          // กำหนดรูปส่วนบนสุดเอง
+  // ปุ่มติดต่อ เรียง: Facebook > โทรศัพท์ > อีเมล > (LINE, Instagram ถ้ามี)
+  const fmtPhone = p => /^\d{10}$/.test(p) ? `${p.slice(0, 3)} ${p.slice(3, 6)} ${p.slice(6)}` : p;
   const rows = [];
-  if (C.contact.line) rows.push(`<a class="btn" href="${esc(C.contact.line)}" target="_blank" rel="noopener">LINE</a>`);
-  if (C.contact.phone) rows.push(`<a class="btn" href="tel:${esc(C.contact.phone)}">โทร ${esc(C.contact.phone)}</a>`);
-  if (C.contact.email) rows.push(`<a class="btn" href="mailto:${esc(C.contact.email)}">${esc(C.contact.email)}</a>`);
-  if (C.contact.instagram) rows.push(`<a class="btn" href="${esc(C.contact.instagram)}" target="_blank" rel="noopener">Instagram</a>`);
   if (C.contact.facebook) rows.push(`<a class="btn" href="${esc(C.contact.facebook)}" target="_blank" rel="noopener">Facebook</a>`);
-  $("contactRow").innerHTML = rows.join("") || '<span style="opacity:.6">ตั้งค่าช่องทางติดต่อในไฟล์ config.js</span>';
+  if (C.contact.phone) rows.push(`<a class="btn" href="tel:${esc(C.contact.phone)}">Call ${esc(fmtPhone(C.contact.phone))}</a>`);
+  if (C.contact.email) rows.push(`<a class="btn mail" href="mailto:${esc(C.contact.email)}">${esc(C.contact.email)}</a>`);
+  if (C.contact.line) rows.push(`<a class="btn" href="${esc(C.contact.line)}" target="_blank" rel="noopener">LINE</a>`);
+  if (C.contact.instagram) rows.push(`<a class="btn" href="${esc(C.contact.instagram)}" target="_blank" rel="noopener">Instagram</a>`);
+  $("contactRow").innerHTML = rows.join("") || '<span style="opacity:.6">Add your contact details in config.js</span>';
 
   let all = [];
   try { all = await Store.list(); }

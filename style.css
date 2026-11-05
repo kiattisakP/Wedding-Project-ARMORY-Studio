@@ -1,6 +1,7 @@
 :root{
   --bg:#faf7f2; --ink:#2a2622; --muted:#8a8178; --gold:#b08d57; --line:#e6dfd3; --card:#fff;
-  --serif:"Noto Serif Thai","Cormorant Garamond",Georgia,serif;
+  --serif:"Cormorant Garamond","Noto Serif Thai",Georgia,serif;     /* ตัวอักษรอังกฤษใช้ Cormorant (หรูหรา) ภาษาไทยใช้ Noto Serif Thai */
+  --lux:"Jost","Prompt",system-ui,sans-serif;
   --sans:"Prompt","Noto Sans Thai",system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -55,6 +56,22 @@ img{display:block;max-width:100%}
   .hero.fixed > div:not(.hbg){max-width:560px}
   .hero.fixed .hbg::after{background:linear-gradient(90deg,rgba(10,8,6,.66),rgba(10,8,6,.22) 55%,rgba(10,8,6,.05))}
 }
+
+/* ฟอนต์หรูหรา: Cormorant Garamond ตัวเล็กจึงขยายขนาดขึ้นเล็กน้อย */
+.brand{font-size:1.6rem;font-weight:600;letter-spacing:.06em}
+.hero h1{font-weight:500;font-size:clamp(2.8rem,7vw,5.2rem);letter-spacing:.02em}
+.title h2,.album-head h1{font-weight:500;font-size:2.5rem}
+.acard h3{font-weight:600;font-size:1.6rem}
+.hero small,.album-head small{font-family:var(--lux)}
+
+/* ส่วนติดต่อด้านล่าง (ภาษาอังกฤษ) */
+.contact{padding:96px 0}
+.contact .ckicker{display:block;font-family:var(--lux);letter-spacing:.4em;text-transform:uppercase;font-size:.72rem;color:var(--gold);margin-bottom:14px}
+.contact h2{font-weight:500;font-size:clamp(2.4rem,6vw,3.6rem);letter-spacing:.02em;line-height:1.15;margin-bottom:14px}
+.contact p{font-family:var(--lux);font-weight:300;font-size:.95rem;letter-spacing:.04em;opacity:.7;max-width:520px;margin:0 auto}
+.contact .row{margin-top:34px}
+.contact .btn{font-family:var(--lux);font-weight:400;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;padding:14px 34px}
+.contact .btn.mail{letter-spacing:.06em;text-transform:none;font-size:.86rem}
 
 /* gallery */
 section{padding:72px 0}
