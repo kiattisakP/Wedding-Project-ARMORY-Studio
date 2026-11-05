@@ -14,8 +14,8 @@ window.SITE = {
   },
 
   // ----- ดึงรูปจาก Google Drive (กรอกทั้ง 2 ช่อง = ใช้ Drive แทน Supabase) -----
-  driveFolderId: "",   // รหัสโฟลเดอร์หลักใน Drive (ข้อความท้ายลิงก์โฟลเดอร์ หลัง /folders/)
-  driveApiKey: "",     // Google API key (เปิดใช้ Google Drive API) ดูวิธีใน README.md
+  driveFolderId: "1-1vi1JjOeBdul-HIoeibfpH8vWxttVHp",   // รหัสโฟลเดอร์หลักใน Drive (ข้อความท้ายลิงก์โฟลเดอร์ หลัง /folders/)
+  driveApiKey: "AIzaSyDlAZqow8sq-YhrDl4dXxcPfHUgh5qly-E",     // Google API key (เปิดใช้ Google Drive API) ดูวิธีใน README.md
   // ชื่อโฟลเดอร์หมวดหมู่ในโฟลเดอร์หลัก (ตรงชื่อไหนก็ได้ ไม่สนตัวพิมพ์เล็ก-ใหญ่)
   driveCategories: {
     prewedding: ["พรีเวดดิ้ง", "prewedding", "pre-wedding", "pre wedding"],
